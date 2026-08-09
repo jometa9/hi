@@ -1,14 +1,9 @@
 [
-  { "type": "text", "text": "Hey there 👋" },
+  { "type": "text", "text": "hola " },
   { "type": "text", "text": "I'm Joaquin Metayer" },
   {
-    "type": "image",
-    "src": "img/og-image.png",
-    "alt": "Joaquin Metayer"
-  },
-  {
     "type": "text",
-    "text": "Software Engineer focused<br>in React development."
+    "text": "Software Engineer at <a target='_blank' href='https://www.mercadolibre.com/'>MELI</a>"
   },
   {
     "type": "text",

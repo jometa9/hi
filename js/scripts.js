@@ -1,4 +1,4 @@
-window.onload = function () {
+(function () {
   var messagesEl = document.querySelector(".messages");
   var messagesUrl = "data/messages.json";
   var typingSpeed = 20;
@@ -9,12 +9,10 @@ window.onload = function () {
 
   var getCurrentTime = function () {
     var date = new Date();
-    var hours = date.getHours();
-    var minutes = date.getMinutes();
-    var current = hours + minutes * 0.01;
+    var current = date.getHours() + date.getMinutes() * 0.01;
     if (current >= 5 && current < 19) return "Have a nice day!";
     if (current >= 19 && current < 22) return "Have a nice evening!";
-    if (current >= 22 || current < 5) return "Have a good night!";
+    return "Have a good night!";
   };
 
   var tokens = {
@@ -48,27 +46,18 @@ window.onload = function () {
     return stripTags(message.text).length * typingSpeed + 500;
   };
 
-  var getFontSize = function () {
-    return parseInt(
-      getComputedStyle(document.body).getPropertyValue("font-size")
-    );
-  };
-
   var pxToRem = function (px) {
-    return px / getFontSize() + "rem";
+    return px / parseInt(getComputedStyle(document.body).fontSize) + "rem";
   };
 
-  var createBubbleElements = function (message, position) {
+  var createBubbleElements = function (message) {
     var bubbleEl = document.createElement("div");
     var messageEl = document.createElement("span");
     var loadingEl = document.createElement("span");
-    bubbleEl.classList.add("bubble");
-    bubbleEl.classList.add("is-loading");
-    bubbleEl.classList.add("cornered");
-    bubbleEl.classList.add(position === "right" ? "right" : "left");
-    bubbleEl.classList.add(isImage(message) ? "image" : "text");
-    messageEl.classList.add("message");
-    loadingEl.classList.add("loading");
+    bubbleEl.className =
+      "bubble is-loading cornered left " + (isImage(message) ? "image" : "text");
+    messageEl.className = "message";
+    loadingEl.className = "loading";
     if (isImage(message)) {
       var imageEl = document.createElement("img");
       imageEl.src = message.src;
@@ -89,7 +78,7 @@ window.onload = function () {
   };
 
   var getDimentions = function (elements) {
-    return (dimensions = {
+    return {
       loading: {
         w: "4rem",
         h: "2.25rem",
@@ -102,12 +91,12 @@ window.onload = function () {
         w: pxToRem(elements.message.offsetWidth + 4),
         h: pxToRem(elements.message.offsetHeight),
       },
-    });
+    };
   };
 
-  var sendMessage = function (message, position) {
+  var sendMessage = function (message) {
     var loadingDuration = getTypingDuration(message);
-    var elements = createBubbleElements(message, position);
+    var elements = createBubbleElements(message);
     messagesEl.appendChild(elements.bubble);
     messagesEl.appendChild(document.createElement("br"));
     var dimensions = getDimentions(elements);
@@ -118,7 +107,7 @@ window.onload = function () {
     elements.bubble.style.opacity = 1;
     var bubbleOffset = elements.bubble.offsetTop + elements.bubble.offsetHeight;
     if (bubbleOffset > messagesEl.offsetHeight) {
-      var scrollMessages = anime({
+      anime({
         targets: messagesEl,
         scrollTop: bubbleOffset,
         duration: 750,
@@ -140,7 +129,7 @@ window.onload = function () {
       direction: "alternate",
       easing: "easeInOutQuad",
     });
-    var dotsStart = anime({
+    anime({
       targets: elements.loading,
       translateX: ["-2rem", "0rem"],
       scale: [0.5, 1],
@@ -232,4 +221,4 @@ window.onload = function () {
     .catch(function (error) {
       console.error("Could not load " + messagesUrl, error);
     });
-};
+})();
