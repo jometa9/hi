@@ -1,4 +1,9 @@
 (function () {
+  // true  -> simulacion de escritura, un mensaje a la vez
+  // false -> todos los mensajes de una
+  // Se puede forzar desde la URL con ?typing=1 o ?typing=0
+  var typing = false;
+
   var messagesEl = document.querySelector(".messages");
   var messagesUrl = "data/messages.json";
   var typingSpeed = 20;
@@ -6,6 +11,14 @@
   var loadingText = "<b>•</b><b>•</b><b>•</b>";
   var messages = [];
   var messageIndex = 0;
+
+  var isTypingEnabled = function () {
+    var param = /[?&]typing=(0|1|true|false)/i.exec(location.search);
+    if (param) return param[1] === "1" || param[1].toLowerCase() === "true";
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches)
+      return false;
+    return typing;
+  };
 
   var getCurrentTime = function () {
     var date = new Date();
@@ -195,6 +208,21 @@
     );
   };
 
+  var showAllMessages = function () {
+    var last = messages.length - 1;
+    messages.forEach(function (message, index) {
+      var elements = createBubbleElements(resolveMessage(message));
+      elements.bubble.classList.remove("is-loading");
+      if (index < last) elements.bubble.classList.remove("cornered");
+      elements.bubble.style.opacity = 1;
+      elements.message.style.opacity = 1;
+      elements.bubble.removeChild(elements.loading);
+      messagesEl.appendChild(elements.bubble);
+      messagesEl.appendChild(document.createElement("br"));
+    });
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  };
+
   var preloadImages = function (list, done) {
     var images = list.filter(isImage);
     var remaining = images.length;
@@ -216,6 +244,7 @@
     })
     .then(function (data) {
       messages = data;
+      if (!isTypingEnabled()) return showAllMessages();
       preloadImages(messages, sendMessages);
     })
     .catch(function (error) {

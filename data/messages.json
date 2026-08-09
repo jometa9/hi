@@ -1,9 +1,9 @@
 [
-  { "type": "text", "text": "hola " },
+  { "type": "text", "text": "hey there 👋" },
   { "type": "text", "text": "I'm Joaquin Metayer" },
   {
     "type": "text",
-    "text": "Software Engineer at <a target='_blank' href='https://www.mercadolibre.com/'>MELI</a>"
+    "text": "Software Engineer at <a target='_blank' href='https://www.mercadolibre.com/'>MELI ;)</a>"
   },
   {
     "type": "text",
