@@ -17,24 +17,6 @@
     return typing;
   };
 
-  var getCurrentTime = function () {
-    var date = new Date();
-    var current = date.getHours() + date.getMinutes() * 0.01;
-    if (current >= 5 && current < 19) return "Have a nice day!";
-    if (current >= 19 && current < 22) return "Have a nice evening!";
-    return "Have a good night!";
-  };
-
-  var tokens = {
-    greeting: getCurrentTime,
-  };
-
-  var resolveTokens = function (text) {
-    return text.replace(/{{\s*(\w+)\s*}}/g, function (match, key) {
-      return typeof tokens[key] === "function" ? tokens[key]() : match;
-    });
-  };
-
   var isImage = function (message) {
     return message.type === "image";
   };
@@ -49,16 +31,6 @@
         caption: message.caption || "",
       };
     return { type: "text", text: message.text || "" };
-  };
-
-  var resolveMessage = function (message) {
-    if (!isImage(message)) return { type: "text", text: resolveTokens(message.text) };
-    return {
-      type: "image",
-      src: message.src,
-      alt: message.alt,
-      caption: resolveTokens(message.caption),
-    };
   };
 
   var getTypingDuration = function (message) {
@@ -213,19 +185,18 @@
   var sendMessages = function () {
     var message = messages[messageIndex];
     if (!message) return;
-    var resolved = resolveMessage(message);
-    sendMessage(resolved);
+    sendMessage(message);
     ++messageIndex;
     setTimeout(
       sendMessages,
-      getTypingDuration(resolved) - 500 + anime.random(900, 1200)
+      getTypingDuration(message) - 500 + anime.random(900, 1200)
     );
   };
 
   var showAllMessages = function () {
     var last = messages.length - 1;
     messages.forEach(function (message, index) {
-      var elements = createBubbleElements(resolveMessage(message));
+      var elements = createBubbleElements(message);
       elements.bubble.classList.remove("is-loading");
       if (index < last) elements.bubble.classList.remove("cornered");
       elements.bubble.style.opacity = 1;
