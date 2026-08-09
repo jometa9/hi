@@ -60,22 +60,6 @@ body {
 .bubble.left {
   background: rgba(206, 206, 206, 0.5);
 }
-.bubble:after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: -0.5rem;
-  width: 0.5rem;
-  height: 0.5rem;
-  background-image: url(../img/corner.svg);
-  background-size: 0.5rem 0.5rem;
-  background-position: 0.5rem 0;
-  background-repeat: no-repeat;
-  transition: background-position 0.15s ease-in;
-}
-.bubble.cornered:after {
-  background-position: 0 0;
-}
 .bubble.image {
   padding: 0;
   line-height: 0;
