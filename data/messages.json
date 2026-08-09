@@ -1,25 +1,8 @@
 [
-  { "type": "text", "text": "hey there" },
-  { "type": "text", "text": "I'm Joaquin Metayer" },
-  {
-    "type": "text",
-    "text": "Software Engineer at <a target='_blank' href='https://www.mercadolibre.com/'>MELI ;)</a>"
-  },
-  {
-    "type": "text",
-    "text": "Writing on my <a target='_blank' href='https://joaquinmetayer.github.io/blog/'>blog</a>"
-  },
-  {
-    "type": "text",
-    "text": "Creating on <a target='_blank' href='https://github.com/joaquinmetayer/'>GitHub</a>"
-  },
-  {
-    "type": "text",
-    "text": "Working at <a target='_blank' href='https://www.instagram.com/bitlogic.io/'>@bitlogic.io</a>"
-  },
-  {
-    "type": "text",
-    "text": "Find me on <a target='_blank' href='https://www.linkedin.com/in/joaquinmetayer/'>LinkedIn</a> or <a target='_blank' href='mailto:joaquinmetayer@gmail.com'>email</a>"
-  },
-  { "type": "text", "text": "{{greeting}}" }
+  "hey there",
+  "I'm Joaquin Metayer",
+  "Software Engineer at <a target='_blank' href='https://www.mercadolibre.com/'>MELI ;)</a>",
+  "my code on <a target='_blank' href='https://github.com/joaquinmetayer/'>GitHub</a>",
+  "find me on <a target='_blank' href='https://www.linkedin.com/in/joaquinmetayer/'>LinkedIn</a> or <a target='_blank' href='mailto:joaquinmetayer@gmail.com'>email</a>",
+  "{{greeting}}"
 ]

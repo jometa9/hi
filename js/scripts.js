@@ -4,7 +4,6 @@
   var messagesEl = document.querySelector(".messages");
   var messagesUrl = "data/messages.json";
   var typingSpeed = 20;
-  var imageTypingDuration = 900;
   var loadingText = "<b>•</b><b>•</b><b>•</b>";
   var messages = [];
   var messageIndex = 0;
@@ -35,47 +34,22 @@
     });
   };
 
-  var stripTags = function (text) {
-    return text.replace(/<(?:.|\n)*?>/gm, "");
-  };
-
-  var isImage = function (message) {
-    return message.type === "image";
-  };
-
-  var resolveMessage = function (message) {
-    if (isImage(message)) return message;
-    return {
-      type: "text",
-      text: resolveTokens(message.text),
-    };
-  };
-
-  var getTypingDuration = function (message) {
-    if (isImage(message)) return imageTypingDuration;
-    return stripTags(message.text).length * typingSpeed + 500;
+  var getTypingDuration = function (text) {
+    return text.replace(/<(?:.|\n)*?>/gm, "").length * typingSpeed + 500;
   };
 
   var pxToRem = function (px) {
     return px / parseInt(getComputedStyle(document.body).fontSize) + "rem";
   };
 
-  var createBubbleElements = function (message) {
+  var createBubbleElements = function (text) {
     var bubbleEl = document.createElement("div");
     var messageEl = document.createElement("span");
     var loadingEl = document.createElement("span");
-    bubbleEl.className =
-      "bubble is-loading cornered left " + (isImage(message) ? "image" : "text");
+    bubbleEl.className = "bubble is-loading cornered left";
     messageEl.className = "message";
     loadingEl.className = "loading";
-    if (isImage(message)) {
-      var imageEl = document.createElement("img");
-      imageEl.src = message.src;
-      imageEl.alt = message.alt || "";
-      messageEl.appendChild(imageEl);
-    } else {
-      messageEl.innerHTML = message.text;
-    }
+    messageEl.innerHTML = text;
     loadingEl.innerHTML = loadingText;
     bubbleEl.appendChild(loadingEl);
     bubbleEl.appendChild(messageEl);
@@ -104,9 +78,9 @@
     };
   };
 
-  var sendMessage = function (message) {
-    var loadingDuration = getTypingDuration(message);
-    var elements = createBubbleElements(message);
+  var sendMessage = function (text) {
+    var loadingDuration = getTypingDuration(text);
+    var elements = createBubbleElements(text);
     messagesEl.appendChild(elements.bubble);
     messagesEl.appendChild(document.createElement("br"));
     var dimensions = getDimentions(elements);
@@ -196,19 +170,19 @@
   var sendMessages = function () {
     var message = messages[messageIndex];
     if (!message) return;
-    var resolved = resolveMessage(message);
-    sendMessage(resolved);
+    var text = resolveTokens(message);
+    sendMessage(text);
     ++messageIndex;
     setTimeout(
       sendMessages,
-      getTypingDuration(resolved) - 500 + anime.random(900, 1200)
+      getTypingDuration(text) - 500 + anime.random(900, 1200)
     );
   };
 
   var showAllMessages = function () {
     var last = messages.length - 1;
     messages.forEach(function (message, index) {
-      var elements = createBubbleElements(resolveMessage(message));
+      var elements = createBubbleElements(resolveTokens(message));
       elements.bubble.classList.remove("is-loading");
       if (index < last) elements.bubble.classList.remove("cornered");
       elements.bubble.style.opacity = 1;
@@ -220,29 +194,14 @@
     messagesEl.scrollTop = messagesEl.scrollHeight;
   };
 
-  var preloadImages = function (list, done) {
-    var images = list.filter(isImage);
-    var remaining = images.length;
-    if (!remaining) return done();
-    var onSettled = function () {
-      if (--remaining === 0) done();
-    };
-    images.forEach(function (message) {
-      var imageEl = new Image();
-      imageEl.onload = onSettled;
-      imageEl.onerror = onSettled;
-      imageEl.src = message.src;
-    });
-  };
-
   fetch(messagesUrl)
     .then(function (response) {
       return response.json();
     })
     .then(function (data) {
       messages = data;
-      if (!isTypingEnabled()) return showAllMessages();
-      preloadImages(messages, sendMessages);
+      if (isTypingEnabled()) sendMessages();
+      else showAllMessages();
     })
     .catch(function (error) {
       console.error("Could not load " + messagesUrl, error);
