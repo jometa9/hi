@@ -2,8 +2,9 @@
   var typing = false;
 
   var messagesEl = document.querySelector(".messages");
-  var messagesUrl = "data/messages.json";
+  var messagesUrl = "messages.json";
   var typingSpeed = 20;
+  var imageTypingDuration = 900;
   var loadingText = "<b>•</b><b>•</b><b>•</b>";
   var messages = [];
   var messageIndex = 0;
@@ -34,22 +35,64 @@
     });
   };
 
-  var getTypingDuration = function (text) {
-    return text.replace(/<(?:.|\n)*?>/gm, "").length * typingSpeed + 500;
+  var isImage = function (message) {
+    return message.type === "image";
+  };
+
+  var normalizeMessage = function (message) {
+    if (typeof message === "string") return { type: "text", text: message };
+    if (message.image || message.src)
+      return {
+        type: "image",
+        src: message.image || message.src,
+        alt: message.alt || "",
+        caption: message.caption || "",
+      };
+    return { type: "text", text: message.text || "" };
+  };
+
+  var resolveMessage = function (message) {
+    if (!isImage(message)) return { type: "text", text: resolveTokens(message.text) };
+    return {
+      type: "image",
+      src: message.src,
+      alt: message.alt,
+      caption: resolveTokens(message.caption),
+    };
+  };
+
+  var getTypingDuration = function (message) {
+    var text = isImage(message) ? message.caption : message.text;
+    var typed = text.replace(/<(?:.|\n)*?>/gm, "").length * typingSpeed;
+    return isImage(message) ? typed + imageTypingDuration : typed + 500;
   };
 
   var pxToRem = function (px) {
     return px / parseInt(getComputedStyle(document.body).fontSize) + "rem";
   };
 
-  var createBubbleElements = function (text) {
+  var createBubbleElements = function (message) {
     var bubbleEl = document.createElement("div");
     var messageEl = document.createElement("span");
     var loadingEl = document.createElement("span");
-    bubbleEl.className = "bubble is-loading cornered left";
+    bubbleEl.className =
+      "bubble is-loading cornered left " + (isImage(message) ? "image" : "text");
     messageEl.className = "message";
     loadingEl.className = "loading";
-    messageEl.innerHTML = text;
+    if (isImage(message)) {
+      var imageEl = document.createElement("img");
+      imageEl.src = message.src;
+      imageEl.alt = message.alt;
+      messageEl.appendChild(imageEl);
+      if (message.caption) {
+        var captionEl = document.createElement("span");
+        captionEl.className = "caption";
+        captionEl.innerHTML = message.caption;
+        messageEl.appendChild(captionEl);
+      }
+    } else {
+      messageEl.innerHTML = message.text;
+    }
     loadingEl.innerHTML = loadingText;
     bubbleEl.appendChild(loadingEl);
     bubbleEl.appendChild(messageEl);
@@ -78,9 +121,9 @@
     };
   };
 
-  var sendMessage = function (text) {
-    var loadingDuration = getTypingDuration(text);
-    var elements = createBubbleElements(text);
+  var sendMessage = function (message) {
+    var loadingDuration = getTypingDuration(message);
+    var elements = createBubbleElements(message);
     messagesEl.appendChild(elements.bubble);
     messagesEl.appendChild(document.createElement("br"));
     var dimensions = getDimentions(elements);
@@ -170,19 +213,19 @@
   var sendMessages = function () {
     var message = messages[messageIndex];
     if (!message) return;
-    var text = resolveTokens(message);
-    sendMessage(text);
+    var resolved = resolveMessage(message);
+    sendMessage(resolved);
     ++messageIndex;
     setTimeout(
       sendMessages,
-      getTypingDuration(text) - 500 + anime.random(900, 1200)
+      getTypingDuration(resolved) - 500 + anime.random(900, 1200)
     );
   };
 
   var showAllMessages = function () {
     var last = messages.length - 1;
     messages.forEach(function (message, index) {
-      var elements = createBubbleElements(resolveTokens(message));
+      var elements = createBubbleElements(resolveMessage(message));
       elements.bubble.classList.remove("is-loading");
       if (index < last) elements.bubble.classList.remove("cornered");
       elements.bubble.style.opacity = 1;
@@ -194,14 +237,32 @@
     messagesEl.scrollTop = messagesEl.scrollHeight;
   };
 
+  var preloadImages = function (list, done) {
+    var images = list.filter(isImage);
+    var remaining = images.length;
+    if (!remaining) return done();
+    var onSettled = function () {
+      if (--remaining === 0) done();
+    };
+    images.forEach(function (message) {
+      var imageEl = new Image();
+      imageEl.onload = onSettled;
+      imageEl.onerror = onSettled;
+      imageEl.src = message.src;
+    });
+  };
+
   fetch(messagesUrl)
     .then(function (response) {
       return response.json();
     })
     .then(function (data) {
-      messages = data;
-      if (isTypingEnabled()) sendMessages();
-      else showAllMessages();
+      messages = data.map(normalizeMessage);
+      if (isTypingEnabled()) return preloadImages(messages, sendMessages);
+      showAllMessages();
+      preloadImages(messages, function () {
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      });
     })
     .catch(function (error) {
       console.error("Could not load " + messagesUrl, error);

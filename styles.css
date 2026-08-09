@@ -1,5 +1,6 @@
 :root {
   font-size: 1.125rem;
+  --bubble-max-width: min(17rem, 72vw);
 }
 @media (min-width: 600px) {
   :root {
@@ -46,6 +47,8 @@ body {
 .bubble {
   overflow: hidden;
   display: inline-block;
+  max-width: var(--bubble-max-width);
+  overflow-wrap: break-word;
   margin: 0 0 0.125rem 0;
   padding: 0.5rem 0.85rem;
   line-height: 1.25rem;
@@ -59,6 +62,27 @@ body {
 }
 .bubble.left {
   background: rgba(206, 206, 206, 0.5);
+}
+.bubble.image {
+  padding: 0;
+  line-height: 0;
+}
+.bubble.image .loading {
+  margin: 0.5rem 0.85rem;
+}
+.bubble.image .message {
+  max-width: var(--bubble-max-width);
+}
+.bubble.image .message img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+.bubble.image .caption {
+  width: 0;
+  min-width: 100%;
+  padding: 0.4rem 0.85rem 0.5rem;
+  line-height: 1.25rem;
 }
 .bubble span {
   display: block;
