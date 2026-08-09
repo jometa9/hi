@@ -1,7 +1,10 @@
 window.onload = function () {
   var messagesEl = document.querySelector(".messages");
+  var messagesUrl = "data/messages.json";
   var typingSpeed = 20;
+  var imageTypingDuration = 900;
   var loadingText = "<b>•</b><b>•</b><b>•</b>";
+  var messages = [];
   var messageIndex = 0;
 
   var getCurrentTime = function () {
@@ -14,16 +17,36 @@ window.onload = function () {
     if (current >= 22 || current < 5) return "Have a good night!";
   };
 
-  var messages = [
-    "Hey there 👋",
-    "I'm Joaquin Metayer",
-    "Software Engineer focused<br>in React development.",
-    "Writing on my <a target='_blank' href='https://joaquinmetayer.github.io/blog/'>blog</a>",
-    "Creating on <a target='_blank' href='https://github.com/joaquinmetayer/'>GitHub</a>",
-    "Working at <a target='_blank' href='https://www.instagram.com/bitlogic.io/'>@bitlogic.io</a>",
-    "Find me on <a target='_blank' href='https://www.linkedin.com/in/joaquinmetayer/'>LinkedIn</a> or <a target='_blank' href='mailto:joaquinmetayer@gmail.com'>email</a>",
-    getCurrentTime(),
-  ];
+  var tokens = {
+    greeting: getCurrentTime,
+  };
+
+  var resolveTokens = function (text) {
+    return text.replace(/{{\s*(\w+)\s*}}/g, function (match, key) {
+      return typeof tokens[key] === "function" ? tokens[key]() : match;
+    });
+  };
+
+  var stripTags = function (text) {
+    return text.replace(/<(?:.|\n)*?>/gm, "");
+  };
+
+  var isImage = function (message) {
+    return message.type === "image";
+  };
+
+  var resolveMessage = function (message) {
+    if (isImage(message)) return message;
+    return {
+      type: "text",
+      text: resolveTokens(message.text),
+    };
+  };
+
+  var getTypingDuration = function (message) {
+    if (isImage(message)) return imageTypingDuration;
+    return stripTags(message.text).length * typingSpeed + 500;
+  };
 
   var getFontSize = function () {
     return parseInt(
@@ -43,9 +66,17 @@ window.onload = function () {
     bubbleEl.classList.add("is-loading");
     bubbleEl.classList.add("cornered");
     bubbleEl.classList.add(position === "right" ? "right" : "left");
+    bubbleEl.classList.add(isImage(message) ? "image" : "text");
     messageEl.classList.add("message");
     loadingEl.classList.add("loading");
-    messageEl.innerHTML = message;
+    if (isImage(message)) {
+      var imageEl = document.createElement("img");
+      imageEl.src = message.src;
+      imageEl.alt = message.alt || "";
+      messageEl.appendChild(imageEl);
+    } else {
+      messageEl.innerHTML = message.text;
+    }
     loadingEl.innerHTML = loadingText;
     bubbleEl.appendChild(loadingEl);
     bubbleEl.appendChild(messageEl);
@@ -75,8 +106,7 @@ window.onload = function () {
   };
 
   var sendMessage = function (message, position) {
-    var loadingDuration =
-      message.replace(/<(?:.|\n)*?>/gm, "").length * typingSpeed + 500;
+    var loadingDuration = getTypingDuration(message);
     var elements = createBubbleElements(message, position);
     messagesEl.appendChild(elements.bubble);
     messagesEl.appendChild(document.createElement("br"));
@@ -167,14 +197,39 @@ window.onload = function () {
   var sendMessages = function () {
     var message = messages[messageIndex];
     if (!message) return;
-    sendMessage(message);
+    var resolved = resolveMessage(message);
+    sendMessage(resolved);
     ++messageIndex;
     setTimeout(
       sendMessages,
-      message.replace(/<(?:.|\n)*?>/gm, "").length * typingSpeed +
-        anime.random(900, 1200)
+      getTypingDuration(resolved) - 500 + anime.random(900, 1200)
     );
   };
 
-  sendMessages();
+  var preloadImages = function (list, done) {
+    var images = list.filter(isImage);
+    var remaining = images.length;
+    if (!remaining) return done();
+    var onSettled = function () {
+      if (--remaining === 0) done();
+    };
+    images.forEach(function (message) {
+      var imageEl = new Image();
+      imageEl.onload = onSettled;
+      imageEl.onerror = onSettled;
+      imageEl.src = message.src;
+    });
+  };
+
+  fetch(messagesUrl)
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (data) {
+      messages = data;
+      preloadImages(messages, sendMessages);
+    })
+    .catch(function (error) {
+      console.error("Could not load " + messagesUrl, error);
+    });
 };

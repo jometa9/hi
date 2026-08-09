@@ -74,6 +74,18 @@ body {
 .bubble.cornered:after {
   background-position: 0 0;
 }
+.bubble.image {
+  padding: 0;
+  line-height: 0;
+}
+.bubble.image .loading {
+  margin: 0.5rem 0.85rem;
+}
+.bubble.image .message img {
+  display: block;
+  width: 11rem;
+  height: auto;
+}
 .bubble span {
   display: block;
 }
