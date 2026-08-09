@@ -1,7 +1,4 @@
 (function () {
-  // true  -> simulacion de escritura, un mensaje a la vez
-  // false -> todos los mensajes de una
-  // Se puede forzar desde la URL con ?typing=1 o ?typing=0
   var typing = false;
 
   var messagesEl = document.querySelector(".messages");
