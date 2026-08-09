@@ -1,5 +1,5 @@
 (function () {
-  var typing = false;
+  var typing = true;
 
   var messagesEl = document.querySelector(".messages");
   var messagesUrl = "messages.json";
