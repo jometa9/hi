@@ -71,16 +71,15 @@ body {
   margin: 0.5rem 0.85rem;
 }
 .bubble.image .message {
-  max-width: var(--bubble-max-width);
+  width: var(--bubble-max-width);
+  max-width: 100%;
 }
 .bubble.image .message img {
   display: block;
-  max-width: 100%;
+  width: 100%;
   height: auto;
 }
 .bubble.image .caption {
-  width: 0;
-  min-width: 100%;
   padding: 0.4rem 0.85rem 0.5rem;
   line-height: 1.25rem;
 }

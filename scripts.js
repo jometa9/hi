@@ -55,6 +55,10 @@
       var imageEl = document.createElement("img");
       imageEl.src = message.src;
       imageEl.alt = message.alt;
+      if (message.width && message.height) {
+        imageEl.width = message.width;
+        imageEl.height = message.height;
+      }
       messageEl.appendChild(imageEl);
       if (message.caption) {
         var captionEl = document.createElement("span");
@@ -217,7 +221,11 @@
     };
     images.forEach(function (message) {
       var imageEl = new Image();
-      imageEl.onload = onSettled;
+      imageEl.onload = function () {
+        message.width = imageEl.naturalWidth;
+        message.height = imageEl.naturalHeight;
+        onSettled();
+      };
       imageEl.onerror = onSettled;
       imageEl.src = message.src;
     });
